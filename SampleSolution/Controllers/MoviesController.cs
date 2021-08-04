@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SampleSolution.Data;
 using SampleSolution.Models;
+using SampleSolution.ViewModels.Movies;
 
 namespace SampleSolution.Controllers
 {
@@ -20,9 +21,33 @@ namespace SampleSolution.Controllers
         }
 
         // GET: Movies
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string movieGenre, string searchString)
         {
-            return View(await _context.Movie.ToListAsync());
+            // Use LINQ to get list of genres.
+            IQueryable<string> genreQuery = from m in _context.Movie
+                                            orderby m.Genre
+                                            select m.Genre;
+
+            var movies = from m in _context.Movie
+                         select m;
+
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                movies = movies.Where(s => s.Title.Contains(searchString));
+            }
+
+            if (!string.IsNullOrEmpty(movieGenre))
+            {
+                movies = movies.Where(x => x.Genre == movieGenre);
+            }
+
+            var movieGenreVM = new MovieGenreViewModel
+            {
+                Genres = new SelectList(await genreQuery.Distinct().ToListAsync()),
+                Movies = await movies.ToListAsync()
+            };
+
+            return View(movieGenreVM);
         }
 
         // GET: Movies/Details/5
@@ -40,7 +65,11 @@ namespace SampleSolution.Controllers
                 return NotFound();
             }
 
-            return View(movie);
+            var movieviewmodel = new MovieViewModel(movie);
+                      
+
+            return View(movieviewmodel);
+            //return View(movie);
         }
 
         // GET: Movies/Create
@@ -78,7 +107,11 @@ namespace SampleSolution.Controllers
             {
                 return NotFound();
             }
-            return View(movie);
+
+            var movieviewmodel = new MovieViewModel(movie);
+
+            return View(movieviewmodel);
+            //return View(movie);
         }
 
         // POST: Movies/Edit/5
@@ -86,9 +119,9 @@ namespace SampleSolution.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,ReleaseDate,Genre,Price")] Movie movie)
+        public async Task<IActionResult> Edit(int id, MovieViewModel postmovie)
         {
-            if (id != movie.Id)
+            if (id != postmovie.Id)
             {
                 return NotFound();
             }
@@ -97,12 +130,17 @@ namespace SampleSolution.Controllers
             {
                 try
                 {
+                    var movie = _context.Movie.FirstOrDefault(m => m.Id == id);
+                    movie.Price = postmovie.Price;
+                    movie.ReleaseDate = postmovie.ReleaseDate;
+                    movie.Title = postmovie.Title;
+                    
                     _context.Update(movie);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!MovieExists(movie.Id))
+                    if (!MovieExists(postmovie.Id))
                     {
                         return NotFound();
                     }
@@ -113,9 +151,9 @@ namespace SampleSolution.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(movie);
+            return View(postmovie);
         }
-
+        
         // GET: Movies/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {

@@ -83,16 +83,36 @@ namespace SampleSolution.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Title,ReleaseDate,Genre,Price")] Movie movie)
+        public async Task<IActionResult> Create(MovieViewModel postmovie)
         {
+            var movie = new Movie
+            {
+                Id = postmovie.Id,
+                Rating = postmovie.Rating,
+                Genre = postmovie.Genre,
+                Price = postmovie.Price,
+                ReleaseDate = postmovie.ReleaseDate,
+                Title = postmovie.Title
+            };
+
             if (ModelState.IsValid)
             {
                 _context.Add(movie);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(movie);
+            return View(postmovie);
         }
+        //public async Task<IActionResult> Create([Bind("Id,Title,ReleaseDate,Genre,Price")] Movie movie)
+        //{
+        //    if (ModelState.IsValid)
+        //    {
+        //        _context.Add(movie);
+        //        await _context.SaveChangesAsync();
+        //        return RedirectToAction(nameof(Index));
+        //    }
+        //    return View(movie);
+        //}
 
         // GET: Movies/Edit/5
         public async Task<IActionResult> Edit(int? id)

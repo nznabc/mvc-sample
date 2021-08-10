@@ -19,7 +19,7 @@ namespace SampleSolution.ViewModels.Movies
             Price = movie.Price;
             ReleaseDate = movie.ReleaseDate;
             Genre = movie.Genre;
-
+            Rating = movie.Rating;
         }
 
         public Movie Movie { get; set; }

@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using SampleSolution.Data;
+using SampleSolution.Repository.Movie;
 
 namespace SampleSolution
 {
@@ -29,6 +30,7 @@ namespace SampleSolution
 
             services.AddDbContext<SampleSolutionContext>(options =>
                     options.UseSqlServer(Configuration.GetConnectionString("SampleSolutionContext")));
+            services.AddScoped<IMovieRepository, MovieRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
